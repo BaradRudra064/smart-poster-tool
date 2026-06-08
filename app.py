@@ -1,6 +1,7 @@
 import streamlit as st
-from PIL import Image, ImageStat
+from PIL import Image
 import io
+import os
 
 st.set_page_config(
     page_title="Smart Poster Branding Tool",
@@ -10,22 +11,32 @@ st.set_page_config(
 st.title("🎨 Smart Poster Branding Tool")
 
 st.write(
-    "Upload your poster. The footer banner will be added automatically."
+    "Upload a poster and optionally upload your own banner."
 )
 
-# Upload poster only
+# Upload Poster
 poster_file = st.file_uploader(
-    "Upload Poster",
+    "📤 Upload Poster",
+    type=["png", "jpg", "jpeg"]
+)
+
+# Upload Custom Banner
+banner_file = st.file_uploader(
+    "📤 Upload Custom Banner (Optional)",
     type=["png", "jpg", "jpeg"]
 )
 
 if poster_file:
 
-    # Load poster
     poster = Image.open(poster_file).convert("RGB")
 
-    # Load permanent banner
-    banner = Image.open("banner.jpg").convert("RGB")
+    # Banner Selection
+    if banner_file:
+        banner = Image.open(banner_file).convert("RGB")
+        banner_name = "Custom Banner"
+    else:
+        banner = Image.open("banner.jpg").convert("RGB")
+        banner_name = "Default Banner"
 
     st.subheader("Preview")
 
@@ -41,16 +52,17 @@ if poster_file:
     with col2:
         st.image(
             banner,
-            caption="Permanent Footer Banner",
+            caption=banner_name,
             use_container_width=True
         )
 
-    if st.button("Generate Final Poster"):
+    if st.button("🚀 Generate Final Poster"):
 
-        # Resize banner according to poster width
+        # Resize Banner
         poster_width = poster.width
 
         ratio = poster_width / banner.width
+
         banner_height = int(
             banner.height * ratio
         )
@@ -60,35 +72,10 @@ if poster_file:
             Image.LANCZOS
         )
 
-        # Dynamic separator color
-        separator_height = 4
-
-        sample_height = min(
-            30,
-            poster.height
-        )
-
-        bottom_part = poster.crop(
-            (
-                0,
-                poster.height - sample_height,
-                poster.width,
-                poster.height
-            )
-        )
-
-        stat = ImageStat.Stat(bottom_part)
-
-        avg_color = tuple(
-            int(x)
-            for x in stat.mean[:3]
-        )
-
-        # Create final canvas
+        # Final Image Size
         final_height = (
-            poster.height
-            + separator_height
-            + banner.height
+            poster.height +
+            banner.height
         )
 
         final_image = Image.new(
@@ -100,41 +87,23 @@ if poster_file:
             "white"
         )
 
-        # Paste poster
+        # Paste Poster
         final_image.paste(
             poster,
             (0, 0)
         )
 
-        # Color matching separator
-        separator = Image.new(
-            "RGB",
-            (
-                poster.width,
-                separator_height
-            ),
-            avg_color
-        )
-
+        # Paste Banner
         final_image.paste(
-            separator,
+            banner,
             (
                 0,
                 poster.height
             )
         )
 
-        # Paste banner
-        final_image.paste(
-            banner,
-            (
-                0,
-                poster.height + separator_height
-            )
-        )
-
         st.success(
-            "Poster Generated Successfully!"
+            "✅ Poster Generated Successfully!"
         )
 
         st.image(
