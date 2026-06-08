@@ -35,7 +35,7 @@ if poster_file:
         banner = Image.open(banner_file).convert("RGB")
         banner_name = "Custom Banner"
     else:
-        banner = Image.open("banner.jpg").convert("RGB")
+        banner = Image.open("banner.jpeg").convert("RGB")
         banner_name = "Default Banner"
 
     st.subheader("Preview")
